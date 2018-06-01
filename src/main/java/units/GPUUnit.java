@@ -2,7 +2,6 @@ package units;
 
 
 import org.apache.commons.lang3.StringUtils;
-import org.jsoup.helper.StringUtil;
 
 public class GPUUnit {
     public String Name;

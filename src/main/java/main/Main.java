@@ -1,3 +1,5 @@
+package main;
+
 import crawl.CrawlerCPUData;
 import crawl.CrawlerDemo;
 import crawl.CrawlerGPUData;
