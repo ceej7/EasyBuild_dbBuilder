@@ -10,12 +10,19 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import util.DBUtil;
 
 import java.io.FileDescriptor;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Vector;
+
+import static util.DBUtil.getConnection;
 
 /**
  * This Demo is used for Crawl Data of all moble phones in JD
@@ -23,6 +30,7 @@ import java.util.Vector;
 public class CrawlerCPUData {
 
     public void Start(){
+        //爬取数据
         try {
         getData();
         } catch (Exception e) {
@@ -35,18 +43,59 @@ public class CrawlerCPUData {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-        for (CPUUnit cpu:cpus
-                ) {
+        //数据本地处理
+        for (CPUUnit cpu:cpus) {
             System.out.println(cpu.toString());
         }
         System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
+        //数据持久化
+        try {
+            conn= DBUtil.getConnection();
+            String sql="insert into cpu(Name,Codename,Cores,Threads,Socket,Process,Clock,Multi,CacheL1,CacheL2,CacheL3,TDP,Released) values (?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            // JAVA默认为TRUE,我们自己处理需要设置为FALSE,并且修改为手动提交,才可以调用rollback()函数
+            conn.setAutoCommit(false);
+            ps = conn.prepareStatement(sql);
+            int i=0;
+            for (CPUUnit cpu:cpus ) {
+                //设置value值
+                System.out.println("data buffered-------------------");
+                ps.setString(1, cpu.getName());
+                ps.setString(2, cpu.getCodename());
+                ps.setInt(3, cpu.getCores());
+                ps.setInt(4, cpu.getThreads());
+                ps.setString(5, cpu.getSocket());
+                ps.setInt(6, cpu.getProcess());
+                ps.setInt(7, cpu.getClock());
+                ps.setFloat(8, cpu.getMulti());
+                ps.setInt(9, cpu.getCacheL1());
+                ps.setInt(10, cpu.getCacheL2());
+                ps.setInt(11, cpu.getCacheL3());
+                ps.setInt(12, cpu.getTDP());
+                ps.setString(13, cpu.getReleased());
+
+                ps.addBatch();
+                //防止内存溢出，我也不是很清楚都这么写
+                if ((i + 1) % 1000 == 0) {
+                    ps.executeBatch();
+                    ps.clearBatch();
+                }
+                i++;
+            }
+            ps.executeBatch(); // 批量执行
+            conn.commit();// 提交事务
+            conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
 
     }
 
      static  final String BASE_URL="https://www.techpowerup.com/cpudb/?mfgr%5B%5D=amd&mfgr%5B%5D=intel&class%5B%5D=desktop&class%5B%5D=server&released%5B%5D=y17_c&released%5B%5D=y14_17&released%5B%5D=y11_14&released%5B%5D=y08_11&released%5B%5D=y05_08&released%5B%5D=y00_05&logo=&nCores=&process=&socket=&codename=&multi=&sort=name&q=";
     Vector<CPUUnit> cpus;
     String file;
-
+    Connection conn;
+    PreparedStatement ps;
+    ResultSet rs;
     /**
      * Constructor
      */
