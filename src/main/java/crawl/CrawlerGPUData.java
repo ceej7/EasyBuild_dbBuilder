@@ -16,6 +16,7 @@ import java.io.FileDescriptor;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
+import java.util.HashMap;
 import java.util.Vector;
 
 /**
@@ -25,7 +26,8 @@ public class CrawlerGPUData {
 
     public void Start(){
         try {
-        getData();
+            getData(BASE_URL1);
+            getData(BASE_URL2);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -36,30 +38,33 @@ public class CrawlerGPUData {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-        for (GPUUnit gpu:gpus
+        for (Vector<GPUUnit> _gpus:gpus.values()
                 ) {
-            System.out.println(gpu.toString());
+            for(GPUUnit gpu:_gpus) {
+                System.out.println(gpu.toString());
+            }
         }
         System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
 
     }
 
-     static  final String BASE_URL="https://www.techpowerup.com/gpudb/?mfgr%5B%5D=amd&mfgr%5B%5D=ati&mfgr%5B%5D=intel&mfgr%5B%5D=matrox&mfgr%5B%5D=nvidia&mfgr%5B%5D=xgi&mobile=0&released%5B%5D=y14_c&released%5B%5D=y11_14&released%5B%5D=y08_11&released%5B%5D=y05_08&released%5B%5D=y00_05&generation=&chipname=&interface=&ushaders=&tmus=&rops=&memsize=&memtype=&buswidth=&slots=&powerplugs=&sort=released&q=";
-    Vector<GPUUnit> gpus;
+     static  final String BASE_URL1="https://www.techpowerup.com/gpudb/?mfgr%5B%5D=amd&mfgr%5B%5D=ati&mfgr%5B%5D=intel&mfgr%5B%5D=matrox&mfgr%5B%5D=nvidia&mfgr%5B%5D=xgi&mobile=0&released%5B%5D=y14_c&released%5B%5D=y11_14&released%5B%5D=y08_11&released%5B%5D=y05_08&released%5B%5D=y00_05&generation=&chipname=&interface=&ushaders=&tmus=&rops=&memsize=&memtype=&buswidth=&slots=&powerplugs=&sort=released&q=";
+    static  final String BASE_URL2="https://www.techpowerup.com/gpudb/?mfgr%5B%5D=amd&mfgr%5B%5D=ati&mfgr%5B%5D=intel&mfgr%5B%5D=matrox&mfgr%5B%5D=nvidia&mfgr%5B%5D=xgi&mobile=0&workstation=1&released%5B%5D=y14_c&released%5B%5D=y11_14&released%5B%5D=y08_11&released%5B%5D=y05_08&released%5B%5D=y00_05&generation=&chipname=&interface=&ushaders=&tmus=&rops=&memsize=&memtype=&buswidth=&slots=&powerplugs=&sort=released&q=";
+     HashMap<String,Vector<GPUUnit>> gpus;
     String file;
 
     /**
      * Constructor
      */
     public CrawlerGPUData(String file){
-        gpus=new Vector<GPUUnit>();
+        gpus=new HashMap<String,Vector<GPUUnit>>();
         this.file=file;
 
     }
 
-    public void getData()throws Exception
+    public void getData(String url)throws Exception
     {
-        String content=doGet(BASE_URL);
+        String content=doGet(url);
         Document root=Jsoup.parse(content);
         Elements tbodies=root.select(("#list table tbody"));
         for(Element tbody:tbodies)
@@ -69,8 +74,18 @@ public class CrawlerGPUData {
             {
 
                 GPUUnit gpu=new GPUUnit(tr.child(0).text(),tr.child(1).text(),tr.child(2).text(),tr.child(3).text(),tr.child(4).text(),tr.child(5).text(),tr.child(6).text(),tr.child(7).text());
+                System.out.println(gpu.toString());
+                Vector<GPUUnit>_gpus= gpus.get(gpu.Name);
+                if(_gpus!=null)
+                {
+                    _gpus.add(gpu);
 
-                gpus.add(gpu);
+                }
+                else{
+                    _gpus=new Vector<GPUUnit>();
+                    _gpus.add(gpu);
+                }
+                gpus.put(gpu.Name,_gpus);
             }
         }
 

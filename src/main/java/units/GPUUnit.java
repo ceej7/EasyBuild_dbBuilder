@@ -1,9 +1,11 @@
 package units;
 
-import com.sun.deploy.util.StringUtils;
+
+import org.apache.commons.lang3.StringUtils;
+import org.jsoup.helper.StringUtil;
 
 public class GPUUnit {
-    String Name;
+    public String Name;
     String Chip;
     String Released;
     String Bus;
@@ -24,7 +26,7 @@ public class GPUUnit {
         Chip=chip;
         Released=released;
         Bus=bus;
-        String[] ms= StringUtils.splitString(memory,",");
+        String[] ms= StringUtils.split(memory ,",");
         String[] _m=ms[0].split("\\D+");
         if(ms[0].contains("x"))
         {
@@ -36,20 +38,24 @@ public class GPUUnit {
             Multiplier=1;
         }
         Memory_Type=ms[1];
-        Memory_Bus=Integer.parseInt(ms[2].split("\\D+")[0]);
+        Memory_Bus=Integer.parseInt(StringUtils.replace(ms[2]," ","").split("\\D+")[0]);
         GPU_Clock=Integer.parseInt(gpu_clock.split("\\D+")[0]);
         M_Clock=Integer.parseInt(m_clock.split("\\D+")[0]);
-        String[] str=StringUtils.splitString(STR,"/");
+        String[] str=StringUtils.split(STR,"/");
+        for (int i = 0; i < str.length; i++) {
+            String _str=StringUtils.replace(str[i]," ","");
+            str[i]=_str;
+        }
         if(str.length==4)
         {
-            Shaders=Integer.parseInt( str[0].split("\\D+")[0]   )+Integer.parseInt( str[1].split("\\D+")[0]   );
-            TMUs=Integer.parseInt( str[2].split("\\D+")[0]   );
-            ROPs=Integer.parseInt( str[3].split("\\D+")[0]   );
+            Shaders=Integer.parseInt(str[0].split("\\D+")[0])+Integer.parseInt(str[1].split("\\D+")[0]   );
+            TMUs=Integer.parseInt(str[2].split("\\D+")[0]);
+            ROPs=Integer.parseInt(str[3].split("\\D+")[0]);
         }
         else{
-            Shaders=Integer.parseInt( str[0].split("\\D+")[0]   );
-            TMUs=Integer.parseInt( str[1].split("\\D+")[0]   );
-            ROPs=Integer.parseInt( str[2].split("\\D+")[0]   );
+            Shaders=Integer.parseInt(str[0].split("\\D+")[0]);
+            TMUs=Integer.parseInt(str[1].split("\\D+")[0]);
+            ROPs=Integer.parseInt(str[2].split("\\D+")[0] );
         }
     }
 
