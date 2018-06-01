@@ -1,5 +1,7 @@
 package units;
 
+import com.sun.deploy.util.StringUtils;
+
 public class GPUUnit {
     String Name;
     String Chip;
@@ -11,9 +13,38 @@ public class GPUUnit {
     int GPU_Clock;
     int M_Clock;
     int Shaders;
+
     int TMUs;
     int ROPs;
     int Multiplier;
 
+    public GPUUnit(String name,String chip,String released,String bus,String memory,String gpu_clock,String m_clock,String STR)
+    {
+        Name=name;
+        Chip=chip;
+        Released=released;
+        Bus=bus;
+        String[] ms= StringUtils.splitString(memory,",");
+        String[] _m=ms[0].split("\\D+");
+        if(ms[0].contains("x"))
+        {
+            Memory_Size=Integer.parseInt(_m[0]);
+            Multiplier=Integer.parseInt(_m[1]);
+        }
+        else{
+            Memory_Size=Integer.parseInt(_m[0]);
+            Multiplier=1;
+        }
+        Memory_Type=ms[1];
+        Memory_Bus=Integer.parseInt(ms[2].split("\\D+")[0]);
+        GPU_Clock=Integer.parseInt(gpu_clock.split("\\D+")[0]);
+        M_Clock=Integer.parseInt(m_clock.split("\\D+")[0]);
+        String[] str=StringUtils.splitString(STR,"/");
+        if(str.length==4)
+        {
+            Shaders=Integer.parseInt( str[0].split("\\D+")[0]   )+Integer.parseInt( str[1].split("\\D+")[0]   );
+
+        }
+    }
 
 }
