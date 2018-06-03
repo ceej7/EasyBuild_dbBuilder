@@ -6,13 +6,13 @@ import crawl.CrawlerGPUData;
 
 public class Main {
     public static void main(String[] args) {
-//        new CrawlerDemo("https://list.jd.com/list.html?cat=9987,653,655&page={page}","C:\\Users\\ceej_\\Desktop\\CPU.txt").StartCrawling();
-//        new CrawlerDemo("https://list.jd.com/list.html?cat=670,677,681&page={page}","C:\\Users\\ceej_\\Desktop\\MB.txt").StartCrawling();
-//        new CrawlerDemo("https://list.jd.com/list.html?cat=670,677,679&page={page}","C:\\Users\\ceej_\\Desktop\\GPU.txt").StartCrawling();
-//        new CrawlerDemo("https://list.jd.com/list.html?cat=670,677,683&page={page}","C:\\Users\\ceej_\\Desktop\\HDD.txt").StartCrawling();
-//        new CrawlerDemo("https://list.jd.com/list.html?cat=670,677,11303&page={page}","C:\\Users\\ceej_\\Desktop\\SSD.txt").StartCrawling();
-//        new CrawlerDemo("https://list.jd.com/list.html?cat=670,677,680&page={page}","C:\\Users\\ceej_\\Desktop\\MEMORY.txt").StartCrawling();
+        //new CrawlerDemo("https://list.jd.com/list.html?cat=670,677,678&page={page}").StartCrawling();//cpu
+        new CrawlerDemo("https://list.jd.com/list.html?cat=670,677,681&page={page}").StartCrawling();//主板
+        new CrawlerDemo("https://list.jd.com/list.html?cat=670,677,679&page={page}").StartCrawling();//gpu
+        new CrawlerDemo("https://list.jd.com/list.html?cat=670,677,683&page={page}").StartCrawling();//hdd
+        new CrawlerDemo("https://list.jd.com/list.html?cat=670,677,11303&page={page}").StartCrawling();//ssd
+        new CrawlerDemo("https://list.jd.com/list.html?cat=670,677,680&page={page}").StartCrawling();//memory
 //        new CrawlerCPUData().Start();
-        new CrawlerGPUData().Start();
+//        new CrawlerGPUData().Start();
     }
 }

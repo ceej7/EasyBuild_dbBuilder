@@ -1,5 +1,6 @@
 package crawl;
 
+import units.GPUUnit;
 import units.GoodUnit;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,8 +15,11 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import util.DBUtil;
+import util.Formatting;
 
 import java.io.*;
+import java.sql.*;
 import java.util.HashMap;
 import java.util.Vector;
 
@@ -27,8 +31,10 @@ public class CrawlerDemo {
     String PRICE_BASE_URL="https://p.3.cn/prices/mgets?type=1&area=1_72_2799_0&pdbp=0&pdtk=&pdpin=ceej_7&pduid=1517923482737888462660&source=list_pc_front&_=1527740885630&&skuIds=";
     static final ObjectMapper MAPPER=new ObjectMapper();
     HashMap<Long, GoodUnit> goods;
-    String outputfile;
-
+    //String outputfile;
+    Connection conn;
+    PreparedStatement ps;
+    ResultSet rs;
    public void StartCrawling()
    {
        try {
@@ -36,27 +42,59 @@ public class CrawlerDemo {
        } catch (Exception e) {
            e.printStackTrace();
        }
-       try {
-           PrintStream ps = new PrintStream(outputfile);
-           System.setOut(ps);
+       //本地化
+//       try {
+//           PrintStream ps = new PrintStream(outputfile);
+//           System.setOut(ps);
+//
+//       } catch (FileNotFoundException e) {
+//           e.printStackTrace();
+//       }
+//       for (GoodUnit good:goods.values()
+//            ) {
+//            System.out.println(good.toString());
+//       }
+//       System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
 
-       } catch (FileNotFoundException e) {
+       //持久化
+       try{
+           conn= DBUtil.getConnection();
+           String sql="insert into items(id,updated,title,img,price) values (?,?,?,?,?)";
+           // JAVA默认为TRUE,我们自己处理需要设置为FALSE,并且修改为手动提交,才可以调用rollback()函数
+           conn.setAutoCommit(false);
+           ps = conn.prepareStatement(sql);
+           int i=0;
+           for (GoodUnit good:goods.values()) {
+               ps.setLong(1, good.getId());
+               ps.setDate(2, new java.sql.Date(new java.util.Date().getTime()));
+               ps.setString(3, good.getTitle());
+               ps.setString(4, good.getImg());
+               ps.setFloat(5, good.getPrice());
+               ps.addBatch();
+               //防止内存溢出，我也不是很清楚都这么写
+               if ((i + 1) % 1000 == 0) {
+                   ps.executeBatch();
+                   ps.clearBatch();
+               }
+               i++;
+           }
+           ps.executeBatch(); // 批量执行
+           conn.commit();// 提交事务
+           conn.close();
+       }
+       catch (Exception e)
+       {
            e.printStackTrace();
        }
-       for (GoodUnit good:goods.values()
-            ) {
-            System.out.println(good.toString());
-       }
-       System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
    }
 
     /**
      * Constructor
      */
-    public CrawlerDemo(String url, String file){
+    public CrawlerDemo(String url/*, String file*/){
         goods=new HashMap<Long, GoodUnit>();
         BASE_URL=url;
-        outputfile=file;
+        //outputfile=file;
 
     }
 
