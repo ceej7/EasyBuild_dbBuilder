@@ -11,11 +11,17 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import units.CPUUnit;
 import units.GPUUnit;
+import util.DBUtil;
+import util.Formatting;
 
 import java.io.FileDescriptor;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Types;
 import java.util.HashMap;
 import java.util.Vector;
 
@@ -23,45 +29,27 @@ import java.util.Vector;
  * This Demo is used for Crawl Data of all moble phones in JD
  */
 public class CrawlerGPUData {
-
-    public void Start(){
-        try {
-            getData(BASE_URL1);
-            getData(BASE_URL2);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
-            PrintStream ps = new PrintStream(file);
-            System.setOut(ps);
-
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        for (Vector<GPUUnit> _gpus:gpus.values()
-                ) {
-            for(GPUUnit gpu:_gpus) {
-                System.out.println(gpu.toString());
-            }
-        }
-        System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
-
-    }
-
-     static  final String BASE_URL1="https://www.techpowerup.com/gpudb/?mfgr%5B%5D=amd&mfgr%5B%5D=ati&mfgr%5B%5D=intel&mfgr%5B%5D=matrox&mfgr%5B%5D=nvidia&mfgr%5B%5D=xgi&mobile=0&released%5B%5D=y14_c&released%5B%5D=y11_14&released%5B%5D=y08_11&released%5B%5D=y05_08&released%5B%5D=y00_05&generation=&chipname=&interface=&ushaders=&tmus=&rops=&memsize=&memtype=&buswidth=&slots=&powerplugs=&sort=released&q=";
+    static  final String BASE_URL1="https://www.techpowerup.com/gpudb/?mfgr%5B%5D=amd&mfgr%5B%5D=ati&mfgr%5B%5D=intel&mfgr%5B%5D=matrox&mfgr%5B%5D=nvidia&mfgr%5B%5D=xgi&mobile=0&released%5B%5D=y14_c&released%5B%5D=y11_14&released%5B%5D=y08_11&released%5B%5D=y05_08&released%5B%5D=y00_05&generation=&chipname=&interface=&ushaders=&tmus=&rops=&memsize=&memtype=&buswidth=&slots=&powerplugs=&sort=released&q=";
     static  final String BASE_URL2="https://www.techpowerup.com/gpudb/?mfgr%5B%5D=amd&mfgr%5B%5D=ati&mfgr%5B%5D=intel&mfgr%5B%5D=matrox&mfgr%5B%5D=nvidia&mfgr%5B%5D=xgi&mobile=0&workstation=1&released%5B%5D=y14_c&released%5B%5D=y11_14&released%5B%5D=y08_11&released%5B%5D=y05_08&released%5B%5D=y00_05&generation=&chipname=&interface=&ushaders=&tmus=&rops=&memsize=&memtype=&buswidth=&slots=&powerplugs=&sort=released&q=";
-     HashMap<String,Vector<GPUUnit>> gpus;
-    String file;
+    HashMap<String,Vector<GPUUnit>> gpus;
+    Connection conn;
+    PreparedStatement ps;
+    ResultSet rs;
+    //String file;
 
     /**
      * Constructor
      */
-    public CrawlerGPUData(String file){
+    public CrawlerGPUData(/*String file*/){
         gpus=new HashMap<String,Vector<GPUUnit>>();
-        this.file=file;
-
+        //this.file=file;
     }
 
+    /**
+     * The process of crawling Data
+     * @param url
+     * @throws Exception
+     */
     public void getData(String url)throws Exception
     {
         String content=doGet(url);
@@ -72,24 +60,31 @@ public class CrawlerGPUData {
             Elements trs=tbody.children();
             for(Element tr:trs)
             {
-
                 GPUUnit gpu=new GPUUnit(tr.child(0).text(),tr.child(1).text(),tr.child(2).text(),tr.child(3).text(),tr.child(4).text(),tr.child(5).text(),tr.child(6).text(),tr.child(7).text());
-                System.out.println(gpu.toString());
-                Vector<GPUUnit>_gpus= gpus.get(gpu.Name);
+                //System.out.println(gpu.toString());
+                Vector<GPUUnit>_gpus= gpus.get(gpu.getName());
                 if(_gpus!=null)
                 {
+                    boolean flg=false;
+                    for(GPUUnit gpu_test:_gpus)
+                    {
+                        if(gpu_test.getName().equals(gpu.getName())&&gpu_test.getChip().equals(gpu.getChip()))
+                        {
+                            System.out.println(gpu.toString()+"----Conflict");
+                            flg=true;
+                            break;
+                        }
+                    }
+                    if(!flg)
                     _gpus.add(gpu);
-
                 }
                 else{
                     _gpus=new Vector<GPUUnit>();
                     _gpus.add(gpu);
                 }
-                gpus.put(gpu.Name,_gpus);
+                gpus.put(gpu.getName(),_gpus);
             }
         }
-
-
     }
 
     /**
@@ -126,5 +121,69 @@ public class CrawlerGPUData {
 
     }
 
-
+    /**
+     * Data persistance
+     */
+    public void Start(){
+        try {
+            getData(BASE_URL1);
+            getData(BASE_URL2);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+//        try {
+//            PrintStream ps = new PrintStream(file);
+//            System.setOut(ps);
+//
+//        } catch (FileNotFoundException e) {
+//            e.printStackTrace();
+//        }
+//        for (Vector<GPUUnit> _gpus:gpus.values()
+//                ) {
+//            for(GPUUnit gpu:_gpus) {
+//                System.out.println(gpu.toString());
+//            }
+//        }
+//        System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
+        try{
+            conn= DBUtil.getConnection();
+            String sql="insert into gpu(Name,Chip,Released,Bus,Memory_Size,Memory_Type,Memory_Bus,GPU_Clock,M_Clock,Shaders,TMUs,ROPs,Multiplier) values (?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            // JAVA默认为TRUE,我们自己处理需要设置为FALSE,并且修改为手动提交,才可以调用rollback()函数
+            conn.setAutoCommit(false);
+            ps = conn.prepareStatement(sql);
+            int i=0;
+            for (Vector<GPUUnit> _gpus:gpus.values()
+                    ) {
+                for(GPUUnit gpu:_gpus) {
+                    ps.setString(1, gpu.getName());
+                    ps.setString(2, gpu.getChip());
+                    ps.setString(3, Formatting.DateFormat(gpu.getReleased()));
+                    ps.setString(4, gpu.getBus());
+                    ps.setInt(5, gpu.getMemory_Size());
+                    ps.setString(6, gpu.getMemory_Type());
+                    ps.setInt(7, gpu.getMemory_Bus());
+                    ps.setInt(8, gpu.getGPU_Clock());
+                    ps.setInt(9, gpu.getM_Clock());
+                    ps.setInt(10, gpu.getShaders());
+                    ps.setInt(11, gpu.getTMUs());
+                    ps.setInt(12, gpu.getROPs());
+                    ps.setInt(13, gpu.getMultiplier());
+                    ps.addBatch();
+                    //防止内存溢出，我也不是很清楚都这么写
+                    if ((i + 1) % 1000 == 0) {
+                        ps.executeBatch();
+                        ps.clearBatch();
+                    }
+                    i++;
+                }
+            }
+            ps.executeBatch(); // 批量执行
+            conn.commit();// 提交事务
+            conn.close();
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
 }

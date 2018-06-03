@@ -4,7 +4,7 @@ package units;
 import org.apache.commons.lang3.StringUtils;
 
 public class GPUUnit {
-    public String Name;
+    String Name;
     String Chip;
     String Released;
     String Bus;
@@ -18,6 +18,111 @@ public class GPUUnit {
     int TMUs;
     int ROPs;
     int Multiplier;
+    public String getName() {
+        return Name;
+    }
+
+    public void setName(String name) {
+        Name = name;
+    }
+
+    public String getChip() {
+        return Chip;
+    }
+
+    public void setChip(String chip) {
+        Chip = chip;
+    }
+
+    public String getReleased() {
+        return Released;
+    }
+
+    public void setReleased(String released) {
+        Released = released;
+    }
+
+    public String getBus() {
+        return Bus;
+    }
+
+    public void setBus(String bus) {
+        Bus = bus;
+    }
+
+    public int getMemory_Size() {
+        return Memory_Size;
+    }
+
+    public void setMemory_Size(int memory_Size) {
+        Memory_Size = memory_Size;
+    }
+
+    public String getMemory_Type() {
+        return Memory_Type;
+    }
+
+    public void setMemory_Type(String memory_Type) {
+        Memory_Type = memory_Type;
+    }
+
+    public int getMemory_Bus() {
+        return Memory_Bus;
+    }
+
+    public void setMemory_Bus(int memory_Bus) {
+        Memory_Bus = memory_Bus;
+    }
+
+    public int getGPU_Clock() {
+        return GPU_Clock;
+    }
+
+    public void setGPU_Clock(int GPU_Clock) {
+        this.GPU_Clock = GPU_Clock;
+    }
+
+    public int getM_Clock() {
+        return M_Clock;
+    }
+
+    public void setM_Clock(int m_Clock) {
+        M_Clock = m_Clock;
+    }
+
+    public int getShaders() {
+        return Shaders;
+    }
+
+    public void setShaders(int shaders) {
+        Shaders = shaders;
+    }
+
+    public int getTMUs() {
+        return TMUs;
+    }
+
+    public void setTMUs(int TMUs) {
+        this.TMUs = TMUs;
+    }
+
+    public int getROPs() {
+        return ROPs;
+    }
+
+    public void setROPs(int ROPs) {
+        this.ROPs = ROPs;
+    }
+
+    public int getMultiplier() {
+        return Multiplier;
+    }
+
+    public void setMultiplier(int multiplier) {
+        Multiplier = multiplier;
+    }
+
+
 
     public GPUUnit(String name,String chip,String released,String bus,String memory,String gpu_clock,String m_clock,String STR)
     {

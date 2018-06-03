@@ -11,17 +11,11 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import util.DBUtil;
-import util.String2Date;
+import util.Formatting;
 
-import java.io.FileDescriptor;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.PrintStream;
 import java.sql.*;
 import java.util.HashMap;
 import java.util.Vector;
-
-import static util.DBUtil.getConnection;
 
 /**
  * This Demo is used for Crawl Data of all moble phones in JD
@@ -171,7 +165,7 @@ public class CrawlerCPUData {
                     ps.setInt(10, cpu.getCacheL2());
                     ps.setInt(11, cpu.getCacheL3());
                     ps.setInt(12, cpu.getTDP());
-                    String _date=String2Date.DateFormat(cpu.getReleased());
+                    String _date= Formatting.DateFormat(cpu.getReleased());
                     if(_date==null)
                     {
                         ps.setNull(13, Types.DATE);

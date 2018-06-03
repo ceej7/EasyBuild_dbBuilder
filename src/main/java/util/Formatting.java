@@ -3,7 +3,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.Date;
 import java.sql.Types;
-public class String2Date {
+public class Formatting {
     public static String DateFormat(String _date)
     {
         String[] str= StringUtils.split(_date," ");

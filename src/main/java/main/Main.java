@@ -12,7 +12,7 @@ public class Main {
 //        new CrawlerDemo("https://list.jd.com/list.html?cat=670,677,683&page={page}","C:\\Users\\ceej_\\Desktop\\HDD.txt").StartCrawling();
 //        new CrawlerDemo("https://list.jd.com/list.html?cat=670,677,11303&page={page}","C:\\Users\\ceej_\\Desktop\\SSD.txt").StartCrawling();
 //        new CrawlerDemo("https://list.jd.com/list.html?cat=670,677,680&page={page}","C:\\Users\\ceej_\\Desktop\\MEMORY.txt").StartCrawling();
-        new CrawlerCPUData().Start();
-//        new CrawlerGPUData("C:\\Users\\ceej_\\Desktop\\GPUDATA.txt").Start();
+//        new CrawlerCPUData().Start();
+        new CrawlerGPUData().Start();
     }
 }
