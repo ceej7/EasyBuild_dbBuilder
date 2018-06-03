@@ -11,15 +11,14 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import util.DBUtil;
+import util.String2Date;
 
 import java.io.FileDescriptor;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
+import java.util.HashMap;
 import java.util.Vector;
 
 import static util.DBUtil.getConnection;
@@ -28,85 +27,26 @@ import static util.DBUtil.getConnection;
  * This Demo is used for Crawl Data of all moble phones in JD
  */
 public class CrawlerCPUData {
-
-    public void Start(){
-        //爬取数据
-        try {
-        getData();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
-            PrintStream ps = new PrintStream(file);
-            System.setOut(ps);
-
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        //数据本地处理
-        for (CPUUnit cpu:cpus) {
-            System.out.println(cpu.toString());
-        }
-        System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
-        //数据持久化
-        try {
-            conn= DBUtil.getConnection();
-            String sql="insert into cpu(Name,Codename,Cores,Threads,Socket,Process,Clock,Multi,CacheL1,CacheL2,CacheL3,TDP,Released) values (?,?,?,?,?,?,?,?,?,?,?,?,?)";
-            // JAVA默认为TRUE,我们自己处理需要设置为FALSE,并且修改为手动提交,才可以调用rollback()函数
-            conn.setAutoCommit(false);
-            ps = conn.prepareStatement(sql);
-            int i=0;
-            for (CPUUnit cpu:cpus ) {
-                //设置value值
-                System.out.println("data buffered-------------------");
-                ps.setString(1, cpu.getName());
-                ps.setString(2, cpu.getCodename());
-                ps.setInt(3, cpu.getCores());
-                ps.setInt(4, cpu.getThreads());
-                ps.setString(5, cpu.getSocket());
-                ps.setInt(6, cpu.getProcess());
-                ps.setInt(7, cpu.getClock());
-                ps.setFloat(8, cpu.getMulti());
-                ps.setInt(9, cpu.getCacheL1());
-                ps.setInt(10, cpu.getCacheL2());
-                ps.setInt(11, cpu.getCacheL3());
-                ps.setInt(12, cpu.getTDP());
-                ps.setString(13, cpu.getReleased());
-
-                ps.addBatch();
-                //防止内存溢出，我也不是很清楚都这么写
-                if ((i + 1) % 1000 == 0) {
-                    ps.executeBatch();
-                    ps.clearBatch();
-                }
-                i++;
-            }
-            ps.executeBatch(); // 批量执行
-            conn.commit();// 提交事务
-            conn.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-    }
-
      static  final String BASE_URL="https://www.techpowerup.com/cpudb/?mfgr%5B%5D=amd&mfgr%5B%5D=intel&class%5B%5D=desktop&class%5B%5D=server&released%5B%5D=y17_c&released%5B%5D=y14_17&released%5B%5D=y11_14&released%5B%5D=y08_11&released%5B%5D=y05_08&released%5B%5D=y00_05&logo=&nCores=&process=&socket=&codename=&multi=&sort=name&q=";
-    Vector<CPUUnit> cpus;
-    String file;
+    HashMap<String,Vector<CPUUnit>> cpus;
     Connection conn;
     PreparedStatement ps;
     ResultSet rs;
+//    String file;
+
     /**
      * Constructor
      */
-    public CrawlerCPUData(String file){
-        cpus=new Vector<CPUUnit>();
-        this.file=file;
-
+    public CrawlerCPUData(/*String file*/){
+        cpus=new HashMap<String,Vector<CPUUnit>>();
+//        this.file=file;
     }
 
-    public void getData()throws Exception
-    {
+    /**
+     * The process of crawling Data
+     * @throws Exception
+     */
+    public void getData()throws Exception{
         String content=doGet(BASE_URL);
         Document root=Jsoup.parse(content);
         Elements tbodies=root.select(("#list table tbody"));
@@ -117,8 +57,28 @@ public class CrawlerCPUData {
             {
 
                 CPUUnit cpu=new CPUUnit(tr.child(0).text(),tr.child(1).text(),tr.child(2).text(),tr.child(3).text(),tr.child(4).text(),tr.child(5).text(),tr.child(6).text(),tr.child(7).text(),tr.child(8).text(),tr.child(9).text());
-
-                cpus.add(cpu);
+                //System.out.println(cpu.toString());
+                Vector<CPUUnit>_cpus= cpus.get(cpu.getName());
+                if(_cpus!=null)
+                {
+                    boolean flg=false;
+                    for(CPUUnit cpu_test:_cpus)
+                    {
+                        if(cpu_test.getName().equals(cpu.getName())&&cpu_test.getCodename().equals(cpu.getCodename())&&cpu_test.getSocket().equals(cpu.getSocket()))
+                        {
+                            //System.out.println(cpu.toString()+"----Conflict");
+                            flg=true;
+                            break;
+                        }
+                    }
+                    if(!flg)
+                        _cpus.add(cpu);
+                }
+                else{
+                    _cpus=new Vector<CPUUnit>();
+                    _cpus.add(cpu);
+                }
+                cpus.put(cpu.getName(),_cpus);
             }
         }
 
@@ -156,8 +116,85 @@ public class CrawlerCPUData {
             httpclient.close();
         }
         return null;
-
     }
 
+    /**
+     * Data persistance
+     */
+    public void Start(){
+        //爬取数据
+        try {
+            getData();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+//        try {
+//            PrintStream ps = new PrintStream(file);
+//            System.setOut(ps);
+//        }
+//        catch (FileNotFoundException e) {
+//            e.printStackTrace();
+//        }
+//        //数据本地处理
+//        for (CPUUnit cpu:cpus) {
+//            System.out.println(cpu.toString());
+//        }
+//        System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
+        //数据持久化
+        try {
+            conn= DBUtil.getConnection();
+            String sql="insert into cpu(Name,Codename,Cores,Threads,Socket,Process,Clock,Multi,CacheL1,CacheL2,CacheL3,TDP,Released) values (?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            // JAVA默认为TRUE,我们自己处理需要设置为FALSE,并且修改为手动提交,才可以调用rollback()函数
+            conn.setAutoCommit(false);
+            ps = conn.prepareStatement(sql);
+            int i=0;
+            for (Vector<CPUUnit> _cpus:cpus.values())
+            {
+                for (CPUUnit cpu:_cpus ) {
+                    //设置value值
+                    System.out.println(cpu.toString()+"buffered-------------------");
+                    ps.setString(1, cpu.getName());
+                    ps.setString(2, cpu.getCodename());
+                    ps.setInt(3, cpu.getCores());
+                    if(cpu.getThreads()==-1)
+                    {
+                        ps.setNull(4, Types.INTEGER);
+                    }
+                    else{
+                        ps.setInt(4, cpu.getThreads());
+                    }
+                    ps.setString(5, cpu.getSocket());
+                    ps.setInt(6, cpu.getProcess());
+                    ps.setInt(7, cpu.getClock());
+                    ps.setFloat(8, cpu.getMulti());
+                    ps.setInt(9, cpu.getCacheL1());
+                    ps.setInt(10, cpu.getCacheL2());
+                    ps.setInt(11, cpu.getCacheL3());
+                    ps.setInt(12, cpu.getTDP());
+                    String _date=String2Date.DateFormat(cpu.getReleased());
+                    if(_date==null)
+                    {
+                        ps.setNull(13, Types.DATE);
+                    }
+                    else{
+                        ps.setString(13, _date);
+                    }
+                    ps.addBatch();
+                    //防止内存溢出，我也不是很清楚都这么写
+                    if ((i + 1) % 1000 == 0) {
+                        ps.executeBatch();
+                        ps.clearBatch();
+                    }
+                    i++;
+                }
+            }
+            ps.executeBatch(); // 批量执行
+            conn.commit();// 提交事务
+            conn.close();
 
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+    }
 }
