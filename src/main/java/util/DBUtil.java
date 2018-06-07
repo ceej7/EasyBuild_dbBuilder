@@ -1,8 +1,6 @@
 package util;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import java.sql.*;
 
 public class DBUtil {
 
@@ -12,7 +10,11 @@ public class DBUtil {
      * @throws SQLException
      */
     public static Connection getConnection() throws SQLException {
-        return DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/building?serverTimezone=UTC&useSSL=false&useUnicode=true&characterEncoding=utf8","root","root");
+        //local
+//        return DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/building?serverTimezone=UTC&useSSL=false&useUnicode=true&characterEncoding=utf8","root","root");
+        //Remote
+        return DriverManager.getConnection("jdbc:mysql://rm-bp14b369b8i4hdm6j5o.mysql.rds.aliyuncs.com:3306/building?serverTimezone=UTC&useSSL=false&useUnicode=true&characterEncoding=utf8","root","Aa123456");
+
     }
 
     /**
@@ -22,5 +24,26 @@ public class DBUtil {
      */
     public static void main(String[] args) throws SQLException {
         Connection connection=getConnection();
+    }
+
+    public  static boolean checkItem(long id,Date date)
+    {
+        try {
+            Connection conn=getConnection();
+            PreparedStatement ps;
+            ResultSet rs;
+            String sql = "select * from items where id=? and updated=?";
+            ps=conn.prepareStatement(sql);
+            ps.setLong(1,id);
+            ps.setDate(2,date);
+            rs=ps.executeQuery();
+            while (rs.next()) {
+                return true;
+            }
+            conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }

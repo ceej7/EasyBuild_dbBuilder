@@ -56,6 +56,8 @@ public class CrawlerDemo {
 //       }
 //       System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
 
+       //去重
+
        //持久化
        try{
            conn= DBUtil.getConnection();
@@ -65,18 +67,25 @@ public class CrawlerDemo {
            ps = conn.prepareStatement(sql);
            int i=0;
            for (GoodUnit good:goods.values()) {
-               ps.setLong(1, good.getId());
-               ps.setDate(2, new java.sql.Date(new java.util.Date().getTime()));
-               ps.setString(3, good.getTitle());
-               ps.setString(4, good.getImg());
-               ps.setFloat(5, good.getPrice());
-               ps.addBatch();
-               //防止内存溢出，我也不是很清楚都这么写
-               if ((i + 1) % 1000 == 0) {
-                   ps.executeBatch();
-                   ps.clearBatch();
+               if(!DBUtil.checkItem(good.getId(),new java.sql.Date(new java.util.Date().getTime())))
+               {
+                   ps.setLong(1, good.getId());
+                   ps.setDate(2, new java.sql.Date(new java.util.Date().getTime()));
+                   ps.setString(3, good.getTitle());
+                   ps.setString(4, good.getImg());
+                   ps.setFloat(5, good.getPrice());
+                   ps.addBatch();
+                   //防止内存溢出，我也不是很清楚都这么写
+                   if ((i + 1) % 1000 == 0) {
+                       ps.executeBatch();
+                       ps.clearBatch();
+                   }
+                   i++;
                }
-               i++;
+               else{
+                   System.out.println(good.toString()+" exists");
+               }
+
            }
            ps.executeBatch(); // 批量执行
            conn.commit();// 提交事务
