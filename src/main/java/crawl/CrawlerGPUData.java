@@ -32,8 +32,10 @@ import java.util.Vector;
  */
 public class CrawlerGPUData {
     public static void main(String[] args) {
-        //        new CrawlerGPUData().Start();
-        new CrawlerGPUData().TransitionStart();
+        //mysql持久化
+        //new CrawlerGPUData().Start();
+        //向mongoDB迁移
+        //new CrawlerGPUData().TransitionStart();
     }
 
     static  final String BASE_URL1="https://www.techpowerup.com/gpudb/?mfgr%5B%5D=amd&mfgr%5B%5D=ati&mfgr%5B%5D=intel&mfgr%5B%5D=matrox&mfgr%5B%5D=nvidia&mfgr%5B%5D=xgi&mobile=0&released%5B%5D=y14_c&released%5B%5D=y11_14&released%5B%5D=y08_11&released%5B%5D=y05_08&released%5B%5D=y00_05&generation=&chipname=&interface=&ushaders=&tmus=&rops=&memsize=&memtype=&buswidth=&slots=&powerplugs=&sort=released&q=";
