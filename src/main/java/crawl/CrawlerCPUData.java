@@ -1,5 +1,9 @@
 package crawl;
 
+import com.mongodb.MongoClient;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import org.apache.commons.lang3.StringUtils;
 import units.CPUUnit;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -12,15 +16,23 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import util.DBUtil;
 import util.Formatting;
+import util.LocalMDBUtil;
 
 import java.sql.*;
 import java.util.HashMap;
 import java.util.Vector;
 
 /**
- * This Demo is used for Crawl Data of all moble phones in JD
+ * 从网站爬CPU参数存入mysql
  */
 public class CrawlerCPUData {
+    public static void main(String[] args) {
+        //mysql数据持久化
+        //        new CrawlerCPUData().Start();
+        //数据迁移至mongoDB
+        new CrawlerCPUData().TransitionStart();
+    }
+
      static  final String BASE_URL="https://www.techpowerup.com/cpudb/?mfgr%5B%5D=amd&mfgr%5B%5D=intel&class%5B%5D=desktop&class%5B%5D=server&released%5B%5D=y17_c&released%5B%5D=y14_17&released%5B%5D=y11_14&released%5B%5D=y08_11&released%5B%5D=y05_08&released%5B%5D=y00_05&logo=&nCores=&process=&socket=&codename=&multi=&sort=name&q=";
     HashMap<String,Vector<CPUUnit>> cpus;
     Connection conn;
@@ -122,18 +134,6 @@ public class CrawlerCPUData {
         } catch (Exception e) {
             e.printStackTrace();
         }
-//        try {
-//            PrintStream ps = new PrintStream(file);
-//            System.setOut(ps);
-//        }
-//        catch (FileNotFoundException e) {
-//            e.printStackTrace();
-//        }
-//        //数据本地处理
-//        for (CPUUnit cpu:cpus) {
-//            System.out.println(cpu.toString());
-//        }
-//        System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
         //数据持久化
         try {
             conn= DBUtil.getConnection();
@@ -189,6 +189,52 @@ public class CrawlerCPUData {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
     }
+    public void TransitionStart(){
+        //数据持久化
+        try {
+            conn= DBUtil.getConnection();
+            String sql="select Name,Codename,Cores,Threads,Socket,Process,Clock,Multi,CacheL1,CacheL2,CacheL3,TDP,Released from cpu";
+            ps=conn.prepareStatement(sql);
+            // JAVA默认为TRUE,我们自己处理需要设置为FALSE,并且修改为手动提交,才可以调用rollback()函数
+            rs=ps.executeQuery();
+            MongoClient client = LocalMDBUtil.createMongoDBClient();
+            // 取得Collecton句柄
+            MongoDatabase database = client.getDatabase("building");
+            MongoCollection<org.bson.Document> collection = database.getCollection("cpu");
+            while(rs.next())
+            {
+                org.bson.Document doc = new org.bson.Document();
+                doc.append("Name",rs.getString(1));
+                doc.append("Codename",rs.getString(2));
+                doc.append("Cores",rs.getInt(3));
+                doc.append("Threads",rs.getInt(4));
+                String[] tmp=StringUtils.split(rs.getString(5)," ");
+                if(tmp.length>1&&tmp[0].equals("Socket"))
+                {
+                    doc.append("Socket", tmp[1]);
+                }
+                else{
+                    doc.append("Socket", rs.getString(5));
+                }
+                doc.append("Process",rs.getInt(6));
+                doc.append("Clock",rs.getInt(7));
+                doc.append("Multi",rs.getFloat(8));
+                doc.append("CacheL1",rs.getInt(9));
+                doc.append("CacheL2",rs.getInt(10));
+                doc.append("CacheL3",rs.getInt(11));
+                doc.append("TDP",rs.getInt(12));
+                doc.append("Released", rs.getString(13));
+                System.out.println(doc.toString());
+                collection.insertOne(doc);
+            }
+            client.close();
+            conn.close();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
 }

@@ -24,9 +24,32 @@ import java.util.HashMap;
 import java.util.Vector;
 
 /**
- * This Demo is used for Crawl Data of all moble phones in JD
+ * This Demo is used for Crawl Data of all Items&type in JD
+ * based on the BASE_URL
  */
 public class CrawlerDemo {
+    public static void main(String[] args) {
+        //        new CrawlerDemo("https://list.jd.com/list.html?cat=670,677,682&ev=3680_97403&page={page}&delivery=1","cooler_wind").StartCrawling();//散热-风冷
+        //        new CrawlerDemo("https://list.jd.com/list.html?cat=670,677,682&ev=3680_97402&page={page}&delivery=1","cooler_water").StartCrawling();//散热-水冷
+        //        new CrawlerDemo("https://list.jd.com/list.html?cat=670,677,691&page={page}&delivery=1","power").StartCrawling();//电源
+        //        new CrawlerDemo("https://list.jd.com/list.html?cat=670,677,687&page={page}&delivery=1","case").StartCrawling();//机箱
+        //        new CrawlerDemo("https://list.jd.com/list.html?cat=670,677,680&page={page}&delivery=1","memory").StartCrawling();//memory
+        //        new CrawlerDemo("https://list.jd.com/list.html?cat=670,677,11303&page={page}&delivery=1","ssd").StartCrawling();//ssd
+        //        new CrawlerDemo("https://list.jd.com/list.html?cat=670,677,683&page={page}&delivery=1","hdd").StartCrawling();//hdd
+        //        new CrawlerDemo("https://list.jd.com/list.html?cat=670,677,679&page={page}&delivery=1","gpu").StartCrawling();//gpu
+        //        new CrawlerDemo("https://list.jd.com/list.html?cat=670,677,681&page={page}&delivery=1","motherboard").StartCrawling();//主板
+        //        new CrawlerDemo("https://list.jd.com/list.html?cat=670,677,678&page={page}&delivery=1","cpu").StartCrawling();//cpu
+
+
+        /**
+         * depricated
+         */
+        //        new CrawlerDemo("https://list.jd.com/list.html?cat=670,677,688&page={page}&delivery=1").StartCrawling();//显示器
+        //        new CrawlerDemo("https://list.jd.com/list.html?cat=670,677,682&ev=3680_1062&page={page}&delivery=1").StartCrawling();//机箱风扇
+        //        new CrawlerDemo("https://list.jd.com/list.html?cat=670,677,684&page={page}&delivery=1").StartCrawling();//光驱
+        //        new CrawlerDemo("https://list.jd.com/list.html?cat=670,677,5008&ev=878_43268&page={page}&delivery=1").StartCrawling();//声卡
+    }
+
     String BASE_URL="https://list.jd.com/list.html?cat=9987,653,655&page={page}";
     String PRICE_BASE_URL="https://p.3.cn/prices/mgets?type=1&area=1_72_2799_0&pdbp=0&pdtk=&pdpin=ceej_7&pduid=1517923482737888462660&source=list_pc_front&_=1527740885630&&skuIds=";
     static final ObjectMapper MAPPER=new ObjectMapper();
@@ -35,6 +58,7 @@ public class CrawlerDemo {
     Connection conn;
     PreparedStatement ps;
     ResultSet rs;
+    String type;
    public void StartCrawling()
    {
        try {
@@ -42,38 +66,22 @@ public class CrawlerDemo {
        } catch (Exception e) {
            e.printStackTrace();
        }
-       //本地化
-//       try {
-//           PrintStream ps = new PrintStream(outputfile);
-//           System.setOut(ps);
-//
-//       } catch (FileNotFoundException e) {
-//           e.printStackTrace();
-//       }
-//       for (GoodUnit good:goods.values()
-//            ) {
-//            System.out.println(good.toString());
-//       }
-//       System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
-
-       //去重
-
        //持久化
        try{
            conn= DBUtil.getConnection();
-           String sql="insert into items(id,updated,title,img,price) values (?,?,?,?,?)";
+           String sql="insert into items(id,title,img,price,type) values (?,?,?,?,?)";
            // JAVA默认为TRUE,我们自己处理需要设置为FALSE,并且修改为手动提交,才可以调用rollback()函数
            conn.setAutoCommit(false);
            ps = conn.prepareStatement(sql);
            int i=0;
            for (GoodUnit good:goods.values()) {
-               if(!DBUtil.checkItem(good.getId(),new java.sql.Date(new java.util.Date().getTime())))
+               if(!DBUtil.checkItem(good.getId()))
                {
                    ps.setLong(1, good.getId());
-                   ps.setDate(2, new java.sql.Date(new java.util.Date().getTime()));
-                   ps.setString(3, good.getTitle());
-                   ps.setString(4, good.getImg());
-                   ps.setFloat(5, good.getPrice());
+                   ps.setString(2, good.getTitle());
+                   ps.setString(3, good.getImg());
+                   ps.setFloat(4, good.getPrice());
+                   ps.setString(5, type);
                    ps.addBatch();
                    //防止内存溢出，我也不是很清楚都这么写
                    if ((i + 1) % 1000 == 0) {
@@ -100,11 +108,10 @@ public class CrawlerDemo {
     /**
      * Constructor
      */
-    public CrawlerDemo(String url/*, String file*/){
+    public CrawlerDemo(String url, String _type){
         goods=new HashMap<Long, GoodUnit>();
         BASE_URL=url;
-        //outputfile=file;
-
+        type=_type;
     }
 
     /**
@@ -168,7 +175,7 @@ public class CrawlerDemo {
      * @throws Exception
      */
     private void traversePage(Document root)throws Exception{
-        Elements lis=root.select("#plist li.gl-item");//得到商品列表
+            Elements lis=root.select("#plist li.gl-item");//得到商品列表
         Vector<String> ids=new Vector<String>();//维护本页商品的id
 
         //遍历商品列表

@@ -1,5 +1,9 @@
 package crawl;
 
+import com.mongodb.MongoClient;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -13,22 +17,25 @@ import units.CPUUnit;
 import units.GPUUnit;
 import util.DBUtil;
 import util.Formatting;
+import util.LocalMDBUtil;
 
 import java.io.FileDescriptor;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.Types;
+import java.sql.*;
 import java.util.HashMap;
 import java.util.Vector;
 
 /**
- * This Demo is used for Crawl Data of all moble phones in JD
+ * 从网站爬CPU参数存入mysql
  */
 public class CrawlerGPUData {
+    public static void main(String[] args) {
+        //        new CrawlerGPUData().Start();
+        new CrawlerGPUData().TransitionStart();
+    }
+
     static  final String BASE_URL1="https://www.techpowerup.com/gpudb/?mfgr%5B%5D=amd&mfgr%5B%5D=ati&mfgr%5B%5D=intel&mfgr%5B%5D=matrox&mfgr%5B%5D=nvidia&mfgr%5B%5D=xgi&mobile=0&released%5B%5D=y14_c&released%5B%5D=y11_14&released%5B%5D=y08_11&released%5B%5D=y05_08&released%5B%5D=y00_05&generation=&chipname=&interface=&ushaders=&tmus=&rops=&memsize=&memtype=&buswidth=&slots=&powerplugs=&sort=released&q=";
     static  final String BASE_URL2="https://www.techpowerup.com/gpudb/?mfgr%5B%5D=amd&mfgr%5B%5D=ati&mfgr%5B%5D=intel&mfgr%5B%5D=matrox&mfgr%5B%5D=nvidia&mfgr%5B%5D=xgi&mobile=0&workstation=1&released%5B%5D=y14_c&released%5B%5D=y11_14&released%5B%5D=y08_11&released%5B%5D=y05_08&released%5B%5D=y00_05&generation=&chipname=&interface=&ushaders=&tmus=&rops=&memsize=&memtype=&buswidth=&slots=&powerplugs=&sort=released&q=";
     HashMap<String,Vector<GPUUnit>> gpus;
@@ -183,6 +190,45 @@ public class CrawlerGPUData {
         }
         catch (Exception e)
         {
+            e.printStackTrace();
+        }
+    }
+
+    public void TransitionStart(){
+        //数据持久化
+        try {
+            conn= DBUtil.getConnection();
+            String sql="select Name,Chip,Released,Bus,Memory_Size,Memory_Type,Memory_Bus,GPU_Clock,M_Clock,Shaders,TMUs,ROPs,Multiplier from gpu";
+            ps=conn.prepareStatement(sql);
+            // JAVA默认为TRUE,我们自己处理需要设置为FALSE,并且修改为手动提交,才可以调用rollback()函数
+            rs=ps.executeQuery();
+            MongoClient client = LocalMDBUtil.createMongoDBClient();
+            // 取得Collecton句柄
+            MongoDatabase database = client.getDatabase("building");
+            MongoCollection<org.bson.Document> collection = database.getCollection("gpu");
+            while(rs.next())
+            {
+                org.bson.Document doc = new org.bson.Document();
+                doc.append("Name",rs.getString(1));
+                doc.append("Chip",rs.getString(2));
+                doc.append("Released",rs.getString(3));
+                doc.append("Bus",rs.getString(4));
+                doc.append("Memory_Size", rs.getInt(5));
+                doc.append("Memory_Type",rs.getString(6));
+                doc.append("Memory_Bus",rs.getInt(7));
+                doc.append("GPU_Clock",rs.getInt(8));
+                doc.append("Shaders",rs.getInt(9));
+                doc.append("TMUs",rs.getInt(10));
+                doc.append("ROPs",rs.getInt(11));
+                doc.append("TDP",rs.getInt(12));
+                doc.append("Multiplier", rs.getInt(13));
+                System.out.println(doc.toString());
+                collection.insertOne(doc);
+            }
+            client.close();
+            conn.close();
+
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }

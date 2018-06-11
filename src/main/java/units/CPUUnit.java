@@ -127,6 +127,19 @@ public class CPUUnit {
         return Name+" "+Codename+" "+Cores+" "+Threads+" "+Socket+" "+Process+" "+Clock+" "+Multi+" "+CacheL1+" "+CacheL2+" "+CacheL3+" "+TDP+" "+Released;
     }
 
+    /**
+     * 为了JD提取数据并格式化而存在
+     * @param name
+     * @param codename
+     * @param cores
+     * @param socket
+     * @param process
+     * @param clock
+     * @param multi
+     * @param cache
+     * @param tdp
+     * @param released
+     */
     public CPUUnit(String name,String codename,String cores,String socket,String process,String clock,String multi,String cache,String tdp, String released)
     {
         Name=name;
