@@ -11,7 +11,7 @@ public class DBUtil {
      */
     public static Connection getConnection() throws SQLException {
         //local
-        return DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/building?serverTimezone=UTC&useSSL=false&useUnicode=true&characterEncoding=utf8","root","root");
+        return DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/building2?serverTimezone=UTC&useSSL=false&useUnicode=true&characterEncoding=utf8","root","root");
         //Remote
         //return DriverManager.getConnection("jdbc:mysql://rm-bp14b369b8i4hdm6j5o.mysql.rds.aliyuncs.com:3306/building?serverTimezone=UTC&useSSL=false&useUnicode=true&characterEncoding=utf8","root","Aa123456");
 
@@ -23,7 +23,26 @@ public class DBUtil {
      * @throws SQLException
      */
     public static void main(String[] args) throws SQLException {
-        Connection connection=getConnection();
+//测试用语句
+        //        try {
+//            Connection conn=getConnection();
+//            String str="[";
+//            PreparedStatement ps;
+//            ResultSet rs;
+//            String sql = "select * from items where title like \"%580%\" and flg is null;";
+//            ps=conn.prepareStatement(sql);
+//            rs=ps.executeQuery();
+//            int i=0;
+//            while (rs.next()) {
+//                i++;
+//                str=str+"\""+rs.getString(1)+"\",";
+//            }
+//            System.out.println(str.substring(0,str.length()-1)+"]");
+//            System.out.println(i);
+//            conn.close();
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
     }
 
     public  static boolean checkItem(long id)

@@ -30,7 +30,7 @@ public class CrawlerCPUData {
         //mysql数据持久化
         //        new CrawlerCPUData().Start();
         //数据迁移至mongoDB
-        new CrawlerCPUData().TransitionStart();
+        //new CrawlerCPUData().TransitionStart();
     }
 
      static  final String BASE_URL="https://www.techpowerup.com/cpudb/?mfgr%5B%5D=amd&mfgr%5B%5D=intel&class%5B%5D=desktop&class%5B%5D=server&released%5B%5D=y17_c&released%5B%5D=y14_17&released%5B%5D=y11_14&released%5B%5D=y08_11&released%5B%5D=y05_08&released%5B%5D=y00_05&logo=&nCores=&process=&socket=&codename=&multi=&sort=name&q=";

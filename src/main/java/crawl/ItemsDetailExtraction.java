@@ -1,9 +1,11 @@
 package crawl;
 
 import com.mongodb.MongoClient;
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
+import org.apache.commons.lang3.StringUtils;
 import org.bson.BsonDocument;
 import org.bson.BsonString;
 import org.jsoup.Jsoup;
@@ -154,6 +156,80 @@ public class ItemsDetailExtraction {
 //        new ItemsDetailExtraction("memory").startExtracting();
 //        new ItemsDetailExtraction("ssd").startExtracting();
 //        new ItemsDetailExtraction("hdd").startExtracting();
+        //根据主体为xxx去重的脚本
+//        HashMap<String, org.bson.Document> s2d=new HashMap<String, org.bson.Document>();
+//        Vector<org.bson.Document> s0d=new Vector<org.bson.Document>();
+//        MongoClient client = LocalMDBUtil.createMongoDBClient();
+//        try {
+//            // 取得Collecton句柄
+//            MongoDatabase database = client.getDatabase("building");
+//            MongoCollection<org.bson.Document> collection = database.getCollection("xxx");
+//            FindIterable<org.bson.Document> findIterable = collection.find();
+//            MongoCursor<org.bson.Document> mongoCursor = findIterable.iterator();
+//            while(mongoCursor.hasNext()){
+//                org.bson.Document thisdoc=mongoCursor.next();
+//                thisdoc.remove("_id");
+//                Object bdy=thisdoc.get("主体");
+//                if(bdy==null)
+//                {
+//                    s0d.add(thisdoc);
+//                }
+//                else{
+//                    String title=bdy.toString().toLowerCase();
+//                    if(!s2d.containsKey(title))
+//                    {
+//                        s2d.put(title,thisdoc);
+//                    }
+//                    else
+//                    {
+//                        org.bson.Document _doc=s2d.get(title);
+//                        String str1=_doc.get("itemIDs").toString().replace("[","").replace("]","");
+//                        String str2=thisdoc.get("itemIDs").toString().replace("[","").replace("]","");
+//                        String[] arr1= StringUtils.split(str1,",");
+//                        String[] arr2=StringUtils.split(str2,",");
+//                        ArrayList<String> arrString=new ArrayList<String>();
+//                        for (int i = 0; i < arr1.length; i++) {
+//                            arrString.add(arr1[i].replace(" ",""));
+//                        }
+//                        arrString.add(arr2[0].replace(" ",""));
+//
+//
+//                        _doc.remove("itemIDs");
+//                        String[] itemIDs=new String[arrString.size()];
+//                        for (int i = 0; i <arrString.size() ; i++) {
+//                            itemIDs[i]=arrString.get(i);
+//                        }
+//                        _doc.append("itemIDs",Arrays.asList(itemIDs));
+//                    }
+//                }
+//            }
+//        } finally {
+//            //关闭Client，释放资源
+//            client.close();
+//        }
+//        //做local_mongo的持久化
+//        client = LocalMDBUtil.createMongoDBClient();
+//        try {
+//            // 取得Collecton句柄
+//            MongoDatabase database = client.getDatabase("building");
+//            MongoCollection<org.bson.Document> collection = database.getCollection("tmp");
+//
+//            // 插入数据
+//            for (org.bson.Document doc: s2d.values()
+//                    ) {
+//                collection.insertOne(doc);
+//            }
+//            for (org.bson.Document doc: s0d
+//                    ) {
+//                collection.insertOne(doc);
+//                System.out.println(doc);
+//            }
+//
+//
+//        } finally {
+//            //关闭Client，释放资源
+//            client.close();
+//        }
     }
 
 

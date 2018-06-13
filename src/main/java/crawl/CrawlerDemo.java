@@ -1,5 +1,8 @@
 package crawl;
 
+import com.mongodb.MongoClient;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import units.GPUUnit;
 import units.GoodUnit;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -17,9 +20,12 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import util.DBUtil;
 import util.Formatting;
+import util.LocalMDBUtil;
 
 import java.io.*;
 import java.sql.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Vector;
 
@@ -40,7 +46,6 @@ public class CrawlerDemo {
         //        new CrawlerDemo("https://list.jd.com/list.html?cat=670,677,681&page={page}&delivery=1","motherboard").StartCrawling();//主板
         //        new CrawlerDemo("https://list.jd.com/list.html?cat=670,677,678&page={page}&delivery=1","cpu").StartCrawling();//cpu
 
-
         /**
          * depricated
          */
@@ -48,6 +53,8 @@ public class CrawlerDemo {
         //        new CrawlerDemo("https://list.jd.com/list.html?cat=670,677,682&ev=3680_1062&page={page}&delivery=1").StartCrawling();//机箱风扇
         //        new CrawlerDemo("https://list.jd.com/list.html?cat=670,677,684&page={page}&delivery=1").StartCrawling();//光驱
         //        new CrawlerDemo("https://list.jd.com/list.html?cat=670,677,5008&ev=878_43268&page={page}&delivery=1").StartCrawling();//声卡
+        //数据迁移如MongoDB
+        //CrawlerDemo.StartTransition();
     }
 
     String BASE_URL="https://list.jd.com/list.html?cat=9987,653,655&page={page}";
@@ -226,6 +233,42 @@ public class CrawlerDemo {
             _good.setPrice(Float.valueOf(price));
         }
 
+    }
+
+    public static void StartTransition()
+    {
+            try {
+            Connection conn=DBUtil.getConnection();
+            PreparedStatement ps;
+            ResultSet rs;
+            String sql = "select * from items";
+            ps=conn.prepareStatement(sql);
+            rs=ps.executeQuery();
+            int i=0;
+            MongoClient client = LocalMDBUtil.createMongoDBClient();
+            // 取得Collecton句柄
+            MongoDatabase database = client.getDatabase("building");
+            MongoCollection<org.bson.Document> collection = database.getCollection("items");
+            while (rs.next()) {
+                String id=rs.getString("id");
+                String title=rs.getString("title");
+                String img=rs.getString("img");
+                Float price=rs.getFloat("price");
+                org.bson.Document doc = new org.bson.Document();
+                org.bson.Document pricesdoc = new org.bson.Document();
+                doc.append("_id",id);
+                doc.append("title",title);
+                doc.append("img",img);
+                pricesdoc.append(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()),price);
+                doc.append("prices",pricesdoc);
+                collection.insertOne(doc);
+                i++;
+            }
+            System.out.println(i);
+            conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     /**

@@ -3,16 +3,20 @@ package util;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.util.JSON;
+import org.apache.commons.lang3.StringUtils;
 import org.bson.BsonDocument;
 import org.bson.BsonString;
 import org.bson.Document;
+import units.KeyValue;
+import units.TitleKeyValue;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.lang.reflect.Array;
+import java.util.*;
 
 public class LocalMDBUtil {
 
@@ -28,30 +32,7 @@ public class LocalMDBUtil {
         return new MongoClient(seedList);
     }
     public static void main(String args[]) {
-        MongoClient client = createMongoDBClient();
-        try {
-            // 取得Collecton句柄
-            MongoDatabase database = client.getDatabase(DEMO_DB);
-            MongoCollection<Document> collection = database.getCollection(DEMO_COLL);
-            // 插入数据
-            Document doc = new Document();
-            String demoname = "JAVA:" + UUID.randomUUID();
-            doc.append("DEMO", demoname);
-            doc.append("MESG", "Hello AliCoudDB For MongoDB");
-            collection.insertOne(doc);
-            System.out.println("insert document: " + doc);
-            // 读取数据
-            BsonDocument filter = new BsonDocument();
-            filter.append("DEMO", new BsonString(demoname));
-            MongoCursor<Document> cursor = collection.find(filter).iterator();
-            while (cursor.hasNext()) {
-                System.out.println("find document: " + cursor.next());
-            }
-        } finally {
-            //关闭Client，释放资源
-            client.close();
-        }
-        return ;
+
     }
 
 }
