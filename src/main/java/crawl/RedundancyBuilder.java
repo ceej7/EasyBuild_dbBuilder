@@ -18,35 +18,33 @@ import java.util.List;
 public class RedundancyBuilder {
     static MongoDatabase database;
     public static void main(String[] args) {
-        MongoClient client = LocalMDBUtil.createMongoDBClient();
-        try {
-            // 取得Collecton句柄
-            database = client.getDatabase("building");
-            MongoCollection<Document> collection = database.getCollection("items");
-            FindIterable<Document> findIterable = collection.find();
-            MongoCursor<Document> mongoCursor = findIterable.iterator();
-            while(mongoCursor.hasNext()){
-                //对每一个item
-                org.bson.Document thisdoc=mongoCursor.next();
-                String id=thisdoc.getString("itemID");
-                System.out.println(id);
-                traverse(id,"cpu",collection);
-                traverse(id,"gpu",collection);
-                traverse(id,"motherboard",collection);
-                traverse(id,"case",collection);
-                traverse(id,"cooler_water",collection);
-                traverse(id,"cooler_wind",collection);
-                traverse(id,"hdd",collection);
-                traverse(id,"memory",collection);
-                traverse(id,"power",collection);
-                traverse(id,"ssd",collection);
-            }
-        } finally {
-            //关闭Client，释放资源
-            client.close();
-        }
-
-
+//        MongoClient client = LocalMDBUtil.createMongoDBClient();
+//        try {
+//            // 取得Collecton句柄
+//            database = client.getDatabase("building");
+//            MongoCollection<Document> collection = database.getCollection("items");
+//            FindIterable<Document> findIterable = collection.find();
+//            MongoCursor<Document> mongoCursor = findIterable.iterator();
+//            while(mongoCursor.hasNext()){
+//                //对每一个item
+//                org.bson.Document thisdoc=mongoCursor.next();
+//                String id=thisdoc.getString("itemID");
+//                System.out.println(id);
+//                traverse(id,"cpu",collection);
+//                traverse(id,"gpu",collection);
+//                traverse(id,"motherboard",collection);
+//                traverse(id,"case",collection);
+//                traverse(id,"cooler_water",collection);
+//                traverse(id,"cooler_wind",collection);
+//                traverse(id,"hdd",collection);
+//                traverse(id,"memory",collection);
+//                traverse(id,"power",collection);
+//                traverse(id,"ssd",collection);
+//            }
+//        } finally {
+//            //关闭Client，释放资源
+//            client.close();
+//        }
     }
 
     public static Document examUniqueDocument(MongoCursor<Document> mc,String id)
